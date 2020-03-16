@@ -19,7 +19,7 @@ class Page {
     ];
 
     // os atributos do método construtor chegam de acordo com a rota orientada pelo slim
-    public function __construct($opts = array()) {
+    public function __construct($opts = array(), $tpl_dir = "/views/") {
 
         // faz o merge do conteúdo do código com o template;
         // se os dados recebidos de $defaults e $opts confltarem, vale o $opts
@@ -28,7 +28,7 @@ class Page {
         // configuração do template
         // $_SERVER["DOCUMENTO_ROOT"] encontra o diretório root do projeto
         $config = array(
-            "tpl_dir"       => $_SERVER["DOCUMENT_ROOT"]."/views/", // endereço das páginas HTML
+            "tpl_dir"       => $_SERVER["DOCUMENT_ROOT"].$tpl_dir, // endereço das páginas HTML
             "cache_dir"     => $_SERVER["DOCUMENT_ROOT"]."/views-cache/", // endereço da página montada
             "debug"         => false // configurado com false melhora a velocidade
         );
