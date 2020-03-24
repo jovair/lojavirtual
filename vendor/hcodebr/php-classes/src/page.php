@@ -15,10 +15,16 @@ class Page {
 
     // recebe atributos defaults para o método construtor
     private $defaults = [
+        "header"=>true,
+        "footer"=>true,
         "data"=>[]
     ];
 
     // os atributos do método construtor chegam de acordo com a rota orientada pelo slim
+    // o atributo $tpl_dir nesta classe já vem com o caminho definido, indicanco onde está
+    // a estrutura da página a ser montada. logo abaixo, em config, esse caminho é passado
+    // como referência, diferente do que acontece com a pasta views-cache.
+    // importante: veja a alteração na classe PageAdmin
     public function __construct($opts = array(), $tpl_dir = "/views/") {
 
         // faz o merge do conteúdo do código com o template;
@@ -40,7 +46,9 @@ class Page {
 
         $this->setData($this->options["data"]);
     
-        $this->tpl->draw("header");
+        // se options for true, prevalece o carregamento do menu;
+        // no caso da tela de login, não tem cabeçalho e rodapé, portanto falso, a página de administração é carregada e não o site.
+        if ($this->options["header"] === true) $this->tpl->draw("header");
     
     }
 
@@ -63,9 +71,11 @@ class Page {
 
     }
 
+    // se options for true, prevalece o carregamento do rodapé;
+    // no caso da tela de login, não tem cabeçalho e rodapé, portanto falso, o rodapé não é carregado
     public function __destruct() {
 
-        $this->tpl->draw("footer");
+        if ($this->options["footer"] === true) $this->tpl->draw("footer");
     }
 
 }

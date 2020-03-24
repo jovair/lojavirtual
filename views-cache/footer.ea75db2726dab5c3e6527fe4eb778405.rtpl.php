@@ -86,7 +86,7 @@
 <script src="/res/site/js/jquery.sticky.js"></script>
 
 <!-- jQuery easing -->
-<script src="/res/site/js//jquery.easing.1.3.min.js"></script>
+<script src="/res/site/js/jquery.easing.1.3.min.js"></script>
 
 <!-- Main Script -->
 <script src="/res/site/js/main.js"></script>
