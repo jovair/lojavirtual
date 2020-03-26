@@ -91,4 +91,80 @@ class User extends Model {
         $_SESSION[User::SESSION] = NULL;
 
     }
+
+    // este método carrega os dados de usuários para alimentar a tela de usuários no template administrativo
+    public static function listAll()
+    {
+
+        $sql = new Sql();
+
+        // os dados das duas tabelas são concatenados pelo campo idperson da tabela tb_persons e ordenado pelo nome do usuário
+        return $sql->select("SELECT * FROM tb_users a INNER JOIN tb_persons b USING(idperson) ORDER BY b.desperson");
+    }
+
+    public function save()
+    {
+
+        $sql = new Sql();
+
+        // os dados que são passados dentros dos parênteses são feitos de modo seguro, impedindo uma ação de injection
+        // primeiro os dados são inseridos na tabela, em seguida é feito o select, devolvendo para a aplicação
+        $results = $sql->select("CALL sp_users_save(:desperson, :deslogin, :despassword, :desemail, :nrphone, :inadmin)", array(
+            ":desperson"=>$this->getdesperson(),
+            ":deslogin"=>$this->getdeslogin(),
+            ":despassword"=>$this->getdespassword(),
+            ":desemail"=>$this->getdesemail(),
+            ":nrphone"=>$this->getnrphone(),
+            ":inadmin"=>$this->getinadmin()
+
+        ));
+
+        $this->setData($results[0]);
+
+    }
+
+    public function get($iduser)
+    {
+
+        $sql = new Sql();
+
+        $results = $sql->select("SELECT * FROM tb_users a INNER JOIN tb_persons b USING(idperson) WHERE a.iduser = :iduser", array(
+            ":iduser"=>$iduser
+        ));
+
+        $this->setData($results[0]);
+        
+    }
+    
+    public function update(){
+        
+        $sql = new Sql();
+        
+        // idêntico ao método save, exceto que aqui precisa do id do usuário, porque lá ele é gerado automaticamente e aqui está apenas atualizando os dados
+        $results = $sql->select("CALL sp_usersupdate_save(:iduser, :desperson, :deslogin, :despassword, :desemail, :nrphone, :inadmin)", array(
+            ":iduser"=>$this->getiduser(),
+            ":desperson"=>$this->getdesperson(),
+            ":deslogin"=>$this->getdeslogin(),
+            ":despassword"=>$this->getdespassword(),
+            ":desemail"=>$this->getdesemail(),
+            ":nrphone"=>$this->getnrphone(),
+            ":inadmin"=>$this->getinadmin()
+            
+        ));
+        
+        $this->setData($results[0]);
+
+    }
+
+    // exclui um usuário
+    public function delete(Type $var = null)
+    {
+        $sql = new Sql();
+
+        // chama a procedure para exclusão do usuário e da pessoa
+        $sql->query("CALL sp_users_delete(:iduser)", array(
+            ":iduser"=>$this->getiduser()
+        ));
+    }
+
 }
