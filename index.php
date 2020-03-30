@@ -1,5 +1,7 @@
 <?php 
 
+// INICIANDO O AMBIENTE DE ROTAS
+
 // inicialização da sessão. (FUTURO: verificar se a seção existe antes de iniciar)
 session_start();
 
@@ -13,7 +15,7 @@ use \Hcode\PageAdmin;
 use \Hcode\Model\User;
 use \Hcode\Model;
 
-// o slim é responsável pela criação de rotas dentro do sistema
+// esta rota  carrega o slim que é responsável pela criação de rotas dentro do sistema
 $app = new \Slim\Slim();
 
 $app->config('debug', true);
@@ -135,8 +137,6 @@ $app->get("/admin/users/:iduser/delete", function($iduser){
 	
 	exit;
 
-
-	
 });
 
 // essa rota atualiza os dados de um usuário. O valor a ser recebido pela função é passado para :iduser
@@ -210,6 +210,97 @@ $app->post("/admin/users/:iduser", function($iduser){
 	header("Location: /admin/users");
 	
 	exit;
+
+});
+
+// carrega o template para a entrada do e-mail a ser recuperado
+$app->get("/admin/forgot", function() {
+
+	$page = new PageAdmin([
+		"header"=>false,
+		"footer"=>false
+	
+	]);
+
+	$page->setTpl("forgot");
+	
+});
+
+// envia o e-mail digitado no template de recuperação da senha
+$app->post("/admin/forgot", function(){
+
+	// passa o e-mail para o método getForgot
+	$user = User::getForgot($_POST["email"]);
+
+	// informa o usuário que o e-mail foi enviado com sucesso
+	header("Location: /admin/forgot/sent");
+	
+	exit;
+
+});
+
+// carrega o template de mensagem enviada
+$app->get("/admin/forgot/sent", function(){
+
+	$page = new PageAdmin([
+		"header"=>false,
+		"footer"=>false
+	
+	]);
+
+	$page->setTpl("forgot-sent");
+
+});
+
+// valida o código do usuário
+$app->get("/admin/forgot/reset", function(){
+
+	// primeira verificação de segurança do código
+	$user = User::validForgotDecrypt($_GET["code"]);
+
+	$page = new PageAdmin([
+		"header"=>false,
+		"footer"=>false
+	
+	]);
+
+	$page->setTpl("forgot-reset", array(
+		"name"=>$user["desperson"],
+		"code"=>$_GET["code"]
+	));
+	
+});
+
+// envia a nova senha do usuário para alteração
+$app->post("/admin/forgot/reset", function(){
+
+	// segunda verificação para ter certeza que não houve alguma brecha de segurança
+	$forgot = User::validForgotDecrypt($_POST["code"]);
+
+	// passa a senha para o método
+	User::setForgotUsed($forgot["idrecovery"]);
+
+	// instancia o objeto
+	$user = new User();
+
+	// recebe a senha bruta do banco
+	$user->get((int)$forgot["iduser"]);
+
+	// envia o hash da senha com a API password_hash
+	$password = password_hash($_POST["password"], PASSWORD_DEFAULT, [
+		"cost"=>12 //custo de processamento para gerar a senha
+	]);
+
+	// passa a senha para o método
+	$user->setPassword($password);
+
+	$page = new PageAdmin([
+		"header"=>false,
+		"footer"=>false
+	
+	]);
+
+	$page->setTpl("forgot-reset-success");
 
 });
 

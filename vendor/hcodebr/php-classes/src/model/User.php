@@ -10,11 +10,18 @@ use \Hcode\DB\Sql;
 // a classe User é uma extensão da classe Model e para isso precisamos dessa classe
 use \Hcode\Model;
 
+use \Hcode\Mailer;
+
 // aqui é criada a classe User, que extende da classe Model
 class User extends Model {
 
     // nome da seção que vai identificar o usuário logado
     const SESSION = "User";
+    const SECRET = "HcodePhp7_Secret"; //constante para encriptar os dados do usuário
+    const SECRET_IV = "HcodePhp7_Secret_IV";
+	const ERROR = "UserError";
+	const ERROR_REGISTER = "UserErrorRegister";
+	const SUCCESS = "UserSucesss";
 
     // o login e senha deste método vem da tela de login
     public static function login($login, $password) {
@@ -166,5 +173,245 @@ class User extends Model {
             ":iduser"=>$this->getiduser()
         ));
     }
+
+    // envia o e-mail recebido do usuário para o BD 
+    public static function getForgot($email, $inadmin = true)
+    {
+
+        $sql = new Sql();
+
+        // traz os dadod do BD
+        $results = $sql->select("SELECT * 
+        FROM tb_persons a 
+        INNER JOIN tb_users b 
+        USING(idperson)
+        WHERE a.desemail = :email", array(
+            ":email"=>$email
+        ));
+
+        // se o e-mail não for encontrado retorna uma mensagem de erro
+        if (count($results) === 0)
+        {
+
+            throw new \Exception("Não foi possível recuperar a senha");
+
+        }
+        else
+        {
+
+            $data = $results[0];
+
+            // executa a procedure no BD, que processa as informações e devolve
+            $results2 = $sql->select("CALL sp_userspasswordsrecoveries_create(:iduser, :desip)", array(
+                ":iduser"=>$data["iduser"],
+                ":desip"=>$_SERVER["REMOTE_ADDR"] // recebe o ip remoto
+            ));
+
+            if (count($results2) === 0)
+            {
+
+                throw new \Exception("Não foi possível recuperar a senha");
+
+            }
+            else
+            {
+
+                // os dados estão em sua forma bruta
+                $dataRecovery = $results2[0];
+
+                // os dados são encriptados. O método de encriptação foi alterado da aula original para outro atualizado
+                $code = openssl_encrypt($dataRecovery['idrecovery'], 'AES-128-CBC', pack("a16", User::SECRET), 0, pack("a16", User::SECRET_IV));
+
+                // os dados são colocados na base64
+                $code = base64_encode($code);
+
+				if ($inadmin === true) {
+
+					$link = "http://www.hcodecommerce.com.br/admin/forgot/reset?code=$code";
+
+				} else {
+
+					$link = "http://www.hcodecommerce.com.br/forgot/reset?code=$code";
+					
+				}				
+
+				$mailer = new Mailer($data['desemail'], $data['desperson'], "Redefinir senha da Hcode Store", "forgot", array(
+					"name"=>$data['desperson'],
+					"link"=>$link
+				));				
+
+				$mailer->send();
+
+				return $link;
+
+			}
+
+        }
+
+    }
+
+    // recebe o código encriptado para validação
+    public static function validForgotDecrypt($code)
+	{
+
+        // decripta o código recebido
+        $code = base64_decode($code);
+
+		$idrecovery = openssl_decrypt($code, 'AES-128-CBC', pack("a16", User::SECRET), 0, pack("a16", User::SECRET_IV));
+
+        // verifica no BD se o uso do código de validação está sendo usado no prazo máximo de 1 hora
+        $sql = new Sql();
+
+		$results = $sql->select("
+			SELECT *
+			FROM tb_userspasswordsrecoveries a
+			INNER JOIN tb_users b USING(iduser)
+			INNER JOIN tb_persons c USING(idperson)
+			WHERE
+				a.idrecovery = :idrecovery
+				AND
+				a.dtrecovery IS NULL
+				AND
+				DATE_ADD(a.dtregister, INTERVAL 1 HOUR) >= NOW();
+		", array(
+			":idrecovery"=>$idrecovery
+		));
+
+		if (count($results) === 0)
+		{
+			throw new \Exception("Não foi possível recuperar a senha.");
+		}
+		else
+		{
+
+			return $results[0];
+
+		}
+
+    }
+    	
+    // verifica se o código de validação da nova senha já foi usado
+    public static function setForgotUsed($idrecovery)
+	{
+
+        // atualiza o código de recuperação, para que ele não seja usado novamente no futuro
+        $sql = new Sql();
+
+		$sql->query("UPDATE tb_userspasswordsrecoveries SET dtrecovery = NOW() WHERE idrecovery = :idrecovery", array(
+			":idrecovery"=>$idrecovery
+		));
+
+	}
+
+    // altera a senha do usuário
+    public function setPassword($password)
+	{
+
+		$sql = new Sql();
+
+		$sql->query("UPDATE tb_users SET despassword = :password WHERE iduser = :iduser", array(
+			":password"=>$password,
+			":iduser"=>$this->getiduser()
+		));
+
+	}
+
+	public static function setError($msg)
+	{
+
+		$_SESSION[User::ERROR] = $msg;
+
+	}
+
+	public static function getError()
+	{
+
+		$msg = (isset($_SESSION[User::ERROR]) && $_SESSION[User::ERROR]) ? $_SESSION[User::ERROR] : '';
+
+		User::clearError();
+
+		return $msg;
+
+	}
+
+	public static function clearError()
+	{
+
+		$_SESSION[User::ERROR] = NULL;
+
+	}
+
+	public static function setSuccess($msg)
+	{
+
+		$_SESSION[User::SUCCESS] = $msg;
+
+	}
+
+	public static function getSuccess()
+	{
+
+		$msg = (isset($_SESSION[User::SUCCESS]) && $_SESSION[User::SUCCESS]) ? $_SESSION[User::SUCCESS] : '';
+
+		User::clearSuccess();
+
+		return $msg;
+
+	}
+
+	public static function clearSuccess()
+	{
+
+		$_SESSION[User::SUCCESS] = NULL;
+
+	}
+
+	public static function setErrorRegister($msg)
+	{
+
+		$_SESSION[User::ERROR_REGISTER] = $msg;
+
+	}
+
+	public static function getErrorRegister()
+	{
+
+		$msg = (isset($_SESSION[User::ERROR_REGISTER]) && $_SESSION[User::ERROR_REGISTER]) ? $_SESSION[User::ERROR_REGISTER] : '';
+
+		User::clearErrorRegister();
+
+		return $msg;
+
+	}
+
+	public static function clearErrorRegister()
+	{
+
+		$_SESSION[User::ERROR_REGISTER] = NULL;
+
+	}
+
+	public static function checkLoginExist($login)
+	{
+
+		$sql = new Sql();
+
+		$results = $sql->select("SELECT * FROM tb_users WHERE deslogin = :deslogin", [
+			':deslogin'=>$login
+		]);
+
+		return (count($results) > 0);
+
+	}
+
+	public static function getPasswordHash($password)
+	{
+
+		return password_hash($password, PASSWORD_DEFAULT, [
+			'cost'=>12
+		]);
+
+	}
+
 
 }
