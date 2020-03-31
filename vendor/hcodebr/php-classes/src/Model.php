@@ -20,8 +20,8 @@ class Model {
         switch ($method)
         {
 
-            case "get":
-                return $this->values[$fieldName];
+            case "get": //se a categoria existe, retorna o seu nome, se não, retorna vazio
+                return (isset($this->values[$fieldName])) ? $this->values[$fieldName] : NULL;
             break;
 
             case "set":
