@@ -16,4 +16,5 @@ $app->get('/', function() {
 		'products'=>Product::checkList($products)
 	]);
 
+	
 });
