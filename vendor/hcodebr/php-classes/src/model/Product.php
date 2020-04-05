@@ -25,6 +25,20 @@ class Product extends Model {
         return $sql->select("SELECT * FROM tb_products ORDER BY desproduct");
     }
 
+    // este método foi criado por conta da alteração do projeto, que não busca as imagens no BD. 
+    public function checkList($list)
+    {
+        // o & permite manipular a variável na memória (verificar aula sobre o assunto)
+        foreach ($list as &$row) {
+            
+            $p = new Product();
+            $p->setData($row);
+            $row = $p->getValues();
+        }
+
+        return $list;
+    }
+
     public function save()
     {
 

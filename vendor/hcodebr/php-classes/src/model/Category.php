@@ -72,6 +72,7 @@ class Category extends Model {
 
     }
 
+    // atualiza as categorinas no arquivo categories-menu.html. Ela é usada todas as vezes que uma categoria é criada, modificada ou excluída.
     public static function updateFile()
     {
 
@@ -84,6 +85,7 @@ class Category extends Model {
 
         }
 
+        // cria o caminho físico do arquivo dinamicamente
         file_put_contents($_SERVER['DOCUMENT_ROOT'] . DIRECTORY_SEPARATOR . "views" . DIRECTORY_SEPARATOR . "categories-menu.html", implode('', $html));
     }
 
