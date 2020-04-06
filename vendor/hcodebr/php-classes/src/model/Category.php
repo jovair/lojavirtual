@@ -89,5 +89,60 @@ class Category extends Model {
         file_put_contents($_SERVER['DOCUMENT_ROOT'] . DIRECTORY_SEPARATOR . "views" . DIRECTORY_SEPARATOR . "categories-menu.html", implode('', $html));
     }
 
+    // carrega todos os produtos para o template de produtos na lista de categorias
+    public function getProducts($related = true)
+    {
+
+        $sql = new Sql();
+
+        if ($related === true) {
+
+            return $sql->select("SELECT * FROM tb_products WHERE idproduct IN(
+                SELECT a.idproduct
+                FROM tb_products a
+                INNER JOIN tb_productscategories b ON a.idproduct = b.idproduct
+                WHERE b.idcategory = :idcategory
+            );", [
+                ':idcategory'=>$this->getidcategory()
+            ]);
+        } else {
+            
+            return $sql->select("SELECT * FROM tb_products WHERE idproduct NOT IN(
+                    SELECT a.idproduct
+                    FROM tb_products a
+                    INNER JOIN tb_productscategories b ON a.idproduct = b.idproduct
+                    WHERE b.idcategory = :idcategory
+                );
+            ", [
+                ':idcategory'=>$this->getidcategory()
+            ]);
+        }
+    }
+
+    // adiciona um produto à uma categoria
+    public function addProduct(Product $product)
+    {
+
+        $sql = new Sql();
+
+        $sql->query("INSERT INTO tb_productscategories (idcategory, idproduct) VALUES(:idcategory, :idproduct", [
+            ':idcategory'=>$this->getidcategory(),
+            ':idproduct'=>$product->getidproduct()
+        ]);
+
+    }
+
+    // adiciona um produto à uma categoria
+    public function removeProduct(Product $product)
+    {
+
+        $sql = new Sql();
+
+        $sql->query("DELETE FROM tb_productscategories WHERE idcategory = :idcategory AND idproduct = :idproduct", [
+            ':idcategory'=>$this->getidcategory(),
+            ':idproduct'=>$product->getidproduct()
+        ]);
+
+    }
 
 }

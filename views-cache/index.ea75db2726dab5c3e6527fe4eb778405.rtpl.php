@@ -93,7 +93,6 @@
                                     <a href="/products/<?php echo htmlspecialchars( $value1["desurl"], ENT_COMPAT, 'UTF-8', FALSE ); ?>" class="view-details-link"><i class="fa fa-link"></i> Ver detalhes </a>
                                 </div>
                             </div>
-                            
                             <h2><a href="/products/<?php echo htmlspecialchars( $value1["desurl"], ENT_COMPAT, 'UTF-8', FALSE ); ?>">$value.desproduct</a></h2>
                             
                             <div class="product-carousel-price">
