@@ -22,15 +22,36 @@ $app->get('/', function() {
 // carrega o template da categoria de produtos escolhida pelo cliente
 $app->get("/categories/:idcategory", function($idcategory) {
 
+	// verifica se o usuário está clicando um uma página específica, se não, carrega a pag. 1
+	$page = (isset($_GET['page'])) ? (int)$_GET['page'] : 1;
+
 	$category = new Category();
 
+	// carrega os produtos da categoria escolhida pelo usuário
 	$category->get((int)$idcategory);
+
+	// recebe o número da página escolhida pelo usuário
+	$pagination = $category->getProductsPage($page);
+
+	// carrega os botões com a lista de páginas
+	$pages = [];
+
+	// carrega todos os itens da página escolhida pelo usuário
+	for ($i=1; $i <= $pagination['pages']; $i++) {
+
+		array_push($pages, [
+			'link'=>'/categories/' . $category->getidcategory() . '?page=' . $i,
+			'page'=>$i
+		]);
+	}
 
 	$page = new Page();
 
+	// exibe os itens dentro do template
 	$page->setTpl("category", [
 		'category'=>$category->getValues(),
-		'products'=>Product::checkList($category->getProducts())
+		'products'=>$pagination["data"],
+		'pages'=>$pages
 	]);
 	
 });
