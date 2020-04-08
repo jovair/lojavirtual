@@ -127,7 +127,7 @@ class Category extends Model {
 
         $sql = new Sql();
 
-        $results =$sql->select
+        $results = $sql->select
         ("SELECT SQL_CALC_FOUND_ROWS * 
             FROM tb_products a
             INNER JOIN tb_productscategories b ON a.idproduct = b.idproduct
@@ -156,7 +156,8 @@ class Category extends Model {
 
         $sql = new Sql();
 
-        $sql->query("INSERT INTO tb_productscategories (idcategory, idproduct) VALUES(:idcategory, :idproduct", [
+        $sql->query("INSERT INTO tb_productscategories (idcategory, idproduct) 
+            VALUES(:idcategory, :idproduct", [
             ':idcategory'=>$this->getidcategory(),
             ':idproduct'=>$product->getidproduct()
         ]);
@@ -169,7 +170,9 @@ class Category extends Model {
 
         $sql = new Sql();
 
-        $sql->query("DELETE FROM tb_productscategories WHERE idcategory = :idcategory AND idproduct = :idproduct", [
+        $sql->query("DELETE FROM tb_productscategories 
+            WHERE idcategory = :idcategory 
+            AND idproduct = :idproduct", [
             ':idcategory'=>$this->getidcategory(),
             ':idproduct'=>$product->getidproduct()
         ]);
