@@ -178,7 +178,7 @@ class Product extends Model {
 
         $sql = new Sql();
 
-        $sql->select
+        return $sql->select
         ("SELECT * FROM 
         tb_categories a 
             INNER JOIN tb_productscategories b ON a.idcategory = b.idcategory 

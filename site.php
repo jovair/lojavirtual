@@ -3,6 +3,7 @@
 use \Hcode\Page;
 use \Hcode\Model\Product;
 use \Hcode\Model\Category;
+use \Hcode\Model\Cart;
 
 // esta rota carrega a página principal do site
 $app->get('/', function() {
@@ -56,6 +57,7 @@ $app->get("/categories/:idcategory", function($idcategory) {
 	
 });
 
+// carrega os produtos por categoria
 $app->get("/products/:desurl", function($desurl){
 
 	$product = new Product();
@@ -68,5 +70,16 @@ $app->get("/products/:desurl", function($desurl){
 		'product'=>$product->getValues(),
 		'categories'=>$product->getCategories()
 	]);
+
+});
+
+// carrega o template do carrnho de compras
+$app->get("/cart", function(){
+
+	$cart = Cart::getFromSession();
+
+	$page = new page();
+
+	$page->setTpl("cart");
 
 });

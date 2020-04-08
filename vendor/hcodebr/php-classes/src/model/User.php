@@ -21,7 +21,59 @@ class User extends Model {
     const SECRET_IV = "HcodePhp7_Secret_IV";
 	const ERROR = "UserError";
 	const ERROR_REGISTER = "UserErrorRegister";
-	const SUCCESS = "UserSucesss";
+    const SUCCESS = "UserSucesss";
+    
+    // verifica se existe uma sessão e retorna o seu id, caso exista
+    public static function getFromSession()
+    {
+
+        $user = new User();
+
+        if(isset($_SESSION[User::SESSION]) && (int)$_SESSION[User::SESSION]['iduser'] > 0)
+        {
+
+            $user->setData($_SESSION[User::SESSION]);
+
+        }
+
+        return $user;
+
+    }
+
+    // verifica se o usuário está logado, se é ou não administrador, permitindo acesso apenas onde ele tem autorização
+    public static function checkLogin($inadmin = true)
+    {
+        if (
+            // a seção não existe
+            !isset($_SESSION[User::SESSION])
+            ||
+            // a seção é falsa (expirada, por exemplo)
+            !$_SESSION[User::SESSION]
+            ||
+            // se o id do usuário não existe. Se o resultado estiver vazio, não é um usuário
+            !(int)$_SESSION[User::SESSION]["iduser"] > 0
+        ) {
+
+            return false;
+
+        } else {
+
+            // verifica se é administrador e se está logado
+            if ($inadmin === true && (bool)$_SESSION[User::SESSION]['inadmin'] === true) {
+
+                return true;
+
+            //não é administrador, mas verifica se está logado
+            } else if ($inadmin === false) {
+
+                return true;
+
+            } else {
+
+                return false;
+            }
+        }
+    }
 
     // o login e senha deste método vem da tela de login
     public static function login($login, $password) {
@@ -68,19 +120,7 @@ class User extends Model {
     {
 
         // se a seção não existir dentro das condições abaixo, o usuário e direcionado para a tela de login
-        if (
-            // a seção não existe
-            !isset($_SESSION[User::SESSION])
-            ||
-            // a seção é falsa (expirada, por exemplo)
-            !$_SESSION[User::SESSION]
-            ||
-            // se o id do usuário não existe. Se o resultado estiver vazio, não é um usuário
-            !(int)$_SESSION[User::SESSION]["iduser"] > 0
-            ||
-            // se o usuário não está logado na administração
-            (bool)$_SESSION[User::SESSION]["inadmin"] !== $inadmin
-        ) {
+        if (User::checkLogin($inadmin)) {
 
             // só é direcionado para a tela de login se não se enquadrou em nenhuma condição acima
             header("Location: /admin/login");
