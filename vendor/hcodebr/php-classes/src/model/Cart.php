@@ -121,43 +121,47 @@ class Cart extends Model {
     }
     
     
-        // adiciona produtos no carrinho
-        public function addProduct(Product $product)
-        {
-            
-            $sql = new Sql();
+    // adiciona produtos no carrinho
+    public function addProduct(Product $product)
+    {
+        
+        $sql = new Sql();
+
+        $sql->query("INSERT INTO tb_cartsproducts (idcart, idproduct) VALUES(:idcart, :idproduct)", [
+            ':idcart'=>$this->getidcart(),
+            ':idproduct'=>$product->getidproduct()
+        ]);
+
+    }
     
-            $sql->query("INSERT INTO tb_cartsproducts (idcart, idproduct) VALUES(:idcart, :idproduct)", [
+    // se all remove todos os produtos do carrinho clicando no ícone do lado esquerdo do carrinho, ao lado da imagem do produto
+    // se all for true, remove um produto de cada vez, clicando no sinal de menos na quantidade de produtos
+    public function removeProduct(Product $product, $all = false)
+    {
+        
+        $sql = new Sql();
+
+        if ($all) {
+
+            $sql->query("UPDATE tb_cartsproducts 
+            SET dtremoved = NOW() 
+            WHERE idcart = :idcart AND idproduct = :idproduct AND dtremoved IS NULL", [
                 ':idcart'=>$this->getidcart(),
                 ':idproduct'=>$product->getidproduct()
             ]);
-    
+        } else {
+
+            $sql->query("UPDATE tb_cartsproducts 
+            SET dtremoved = NOW() 
+            WHERE idcart = :idcart AND idproduct = :idproduct AND dtremoved IS NULL LIMIT 1", [
+                ':idcart'=>$this->getidcart(),
+                ':idproduct'=>$product->getidproduct()
+            ]);
         }
-    
-        public function removeProduct(Product $product, $all = false)
-        {
-            
-            $sql = new Sql();
-    
-            if ($all) {
-    
-                $sql->query("UPDATE tb_cartsproducts 
-                SET dtremoved = NOW() 
-                WHERE idcart = :idcart AND idproduct = :idproduct AND dtremoved IS NULL", [
-                    ':idcart'=>$this->getidcart(),
-                    ':idproduct'=>$product->getidproduct()
-                ]);
-            } else {
-    
-                $sql->query("UPDATE tb_cartsproducts 
-                SET dtremoved = NOW() 
-                WHERE idcart = :idcart AND idproduct = :idproduct AND dtremoved IS NULL LIMIT 1", [
-                    ':idcart'=>$this->getidcart(),
-                    ':idproduct'=>$product->getidproduct()
-                ]);
-            }
-    
-        }
+
+    }
+
+    // pega um produto no BD para colocar no carrinho de compras
     public function getProducts()
     {
         
@@ -175,6 +179,69 @@ class Cart extends Model {
         ]);
 
         return Product::checkList($rows);
+    }
+
+    // pega a soma de todos os itenhs do carrinho no BD.
+    public function getProductsTotals()
+    {
+        
+        $sql = new Sql();
+
+        $results = $sql->select(
+            "SELECT SUM(vlprice) AS vlprice, SUM(vlwidth) AS vlwidth, SUM(vlheight) AS vlheight, SUM(vllength) AS vllength, SUM(vlweight) AS vlweight, COUNT(*) AS nrqtd
+            FROM tb_products a
+            INNER JOIN tb_cartsproducts b ON a.idproduct = b.idproduct
+            WHERE b.idcart = :idcart AND dtremoved IS NULL;
+        ", [
+            ':idcart'=>$this->getidcart()
+        ]);
+
+        if (count($results) > 0) {
+            return $results[0];
+        } else {
+            return[];
+        }
+    }
+    
+    public function setFreight($nrzipcode)
+    {
+        
+        $nrzipcode = str_replace('-', '', $nrzipcode);
+
+        $totals = $this->getProductsTotals();
+
+        if ($totals['vlheight'] < 2) $totals['vlheight'] = 2;
+        if ($totals['vllength'] < 16) $totals['vllength'] = 16;
+        
+        if ($totals['nrqtd'] > 0) {
+
+            $qs = http_build_query([
+            'nCdEmpresa'=>'',
+            'sDsSenha'=>'',
+            'nCdServico'=>'40010',
+            'sCepOrigem'=>'37640000',
+            'sCepDestino'=>$nrzipcode,
+            'nVlPeso'=>$totals['vlweight'],
+            'nCdFormato'=>'1',
+            'nVlComprimento'=>$totals['vllength'],
+            'nVlAltura'=>$totals['vlheight'],
+            'nVlLargura'=>$totals['vlwidth'],
+            'nVlDiametro'=>'0',
+            'sCdMaoPropria'=>'S',
+            'nVlValorDeclarado'=>$totals['vlprice'],
+            'sCdAvisoRecebimento'=>'S'
+
+            ]);
+
+            $xml = (array)simplexml_load_file("http://ws.correios.com.br/calculador/CalcPrecoPrazo.asmx/CalcPrecoPrazo?".$qs);
+            
+            echo json_encode($xml);
+            exit;
+
+        } else {
+    
+    
+        }
     }
 
 }
