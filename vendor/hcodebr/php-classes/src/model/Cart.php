@@ -133,6 +133,8 @@ class Cart extends Model {
             ':idproduct'=>$product->getidproduct()
         ]);
 
+        $this->getCalculateTotal();
+
     }
     
     // se all remove todos os produtos do carrinho clicando no ícone do lado esquerdo do carrinho, ao lado da imagem do produto
@@ -158,6 +160,8 @@ class Cart extends Model {
                 ':idcart'=>$this->getidcart(),
                 ':idproduct'=>$product->getidproduct()
             ]);
+
+            $this->getCalculateTotal();
         }
 
     }
@@ -301,6 +305,36 @@ class Cart extends Model {
 
     }
 
+    // atualiza o valor do frete se aumentar ou diminuir a quantidade de produtos
+    public function updateFreight()
+    {
+        
+        if ($this->getdeszipcode() != '') {
 
+            $this->setFreight($this->getdeszipcode());
+        }
+    }
+
+    // pega o método getValues da classe pai para calcular o valor do frete
+    public function getValues()
+    {
+        
+        $this->getCalculateTotal();
+
+        return parent::getValues();
+
+    }
+
+    
+    public function getCalculateTotal()
+    {
+
+        $this->updateFreight();
+       
+        $totals = $this->getProductsTotals();
+
+        $this->setvlsubtotal($totals['vlprice']);
+        $this->setvltotal($totals['vlprice'] + $this->getvlfreight());
+    }
 
 }
