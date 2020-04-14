@@ -20,6 +20,7 @@ class Cart extends Model {
 
     // armazena o id da sessão para movimentar produtos no carrinho
     const SESSION = "Cart";
+    const SESSION_ERROR = "cartError";
 
     // verifica se o carrinho existe no BD e se a sessão está ativa
     public static function getFromSession()
@@ -203,6 +204,7 @@ class Cart extends Model {
         }
     }
     
+    // pega os dados do produto do carrinho no BD e passa para o webservice dos correios calcular o frete de acordo com os CEPs de origem/destino
     public function setFreight($nrzipcode)
     {
         
@@ -233,15 +235,72 @@ class Cart extends Model {
 
             ]);
 
-            $xml = (array)simplexml_load_file("http://ws.correios.com.br/calculador/CalcPrecoPrazo.asmx/CalcPrecoPrazo?".$qs);
-            
-            echo json_encode($xml);
-            exit;
+            // webservice Correios
+            $xml = simplexml_load_file("http://ws.correios.com.br/calculador/CalcPrecoPrazo.asmx/CalcPrecoPrazo?".$qs);
+
+            // recebe as variáveis dos Correios
+            $result = $xml->Servicos->cServico;
+
+            if ($result->MsgErro != '') {
+
+                Cart::setMsgError($result->MsgErro);
+
+            } else {
+
+                Cart::clearMsgError();
+
+            }
+
+            // variáveis de interesse para o site
+            $this->setnrdays($result->PrazoEntrega);
+            $this->setvlfreight(Cart::formatValueToDecimal($result->Valor));
+            $this->setdeszipcode($nrzipcode);
+
+            $this->save();
+
+            return $result;
 
         } else {
     
     
         }
     }
+
+    // substitui a formatação recebida dos correios de R$ para $ (padrão do BD)
+    public static function formatValueToDecimal($value):float {
+
+        $value = str_replace('.', '', $value);
+        return str_replace(',', '.', $value);
+    }
+
+    // configura mensagem de erro de acordo com os Correios
+    public static function setMsgError($msg)
+    {
+
+        $_SESSION[Cart::SESSION_ERROR] = $msg;
+
+    }
+
+    // pega a mensagem de erro
+    public static function getMsgError()
+    {
+
+        $msg = (isset($_SESSION[Cart::SESSION_ERROR])) ? $_SESSION[Cart::SESSION_ERROR] : "";
+
+        Cart::clearMsgError();
+
+        return $msg;
+
+    }
+
+    // limpa a mensagem de erro
+    public static function clearMsgError()
+    {
+
+        $_SESSION[Cart::SESSION_ERROR] = NULL;
+
+    }
+
+
 
 }

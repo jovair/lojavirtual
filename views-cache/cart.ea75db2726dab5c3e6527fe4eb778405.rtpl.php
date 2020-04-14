@@ -21,9 +21,11 @@
 
                         <form action="/checkout">
                             
+                            <?php if( $error != '' ){ ?>
                             <div class="alert alert-danger" role="alert">
-                            Error!
+                            <?php echo htmlspecialchars( $Error, ENT_COMPAT, 'UTF-8', FALSE ); ?>
                             </div>
+                            <?php } ?>
 
                             <table cellspacing="0" class="shop_table cart">
                                 <thead>
