@@ -23,7 +23,7 @@
                             
                             <?php if( $error != '' ){ ?>
                             <div class="alert alert-danger" role="alert">
-                            <?php echo htmlspecialchars( $Error, ENT_COMPAT, 'UTF-8', FALSE ); ?>
+                            <?php echo htmlspecialchars( $error, ENT_COMPAT, 'UTF-8', FALSE ); ?>
                             </div>
                             <?php } ?>
 

@@ -4,6 +4,8 @@ use \Hcode\Page;
 use \Hcode\Model\Product;
 use \Hcode\Model\Category;
 use \Hcode\Model\Cart;
+use \Hcode\Model\Address;
+use \Hcode\Model\User;
 
 // esta rota carrega a página principal do site
 $app->get('/', function() {
@@ -144,6 +146,8 @@ $app->get("/cart/:idproduct/remove", function($idproduct) {
 	exit;
 
 });
+
+// envia os dados do carrinho, já com o frete, para o BD.
 $app->post("/cart/freight", function() {
 
 	$cart = Cart::getFromSession();
@@ -153,4 +157,58 @@ $app->post("/cart/freight", function() {
 	header("Location: /cart");
 
 	exit;
+});
+
+// faz toda a checagem dos dados do cliente para validação do login
+$app->get("/checkout", function(){
+
+	User::verifyLogin(false);
+
+	$cart = Cart::getFromSession();
+
+	$address = new Address();
+
+	$page = new Page();
+
+	$page->setTpl("checkout", [
+		'cart'=>$cart->getValues(),
+		'address'=>$address->getValues()
+	]);
+});
+
+// verifica se o login é válido
+$app->get("/login", function(){
+
+	$page = new Page();
+
+	$page->setTpl("login", [
+		'error'=>User::getError()
+	]);
+});
+
+// envia o login e senha para o BD
+$app->post("/login", function() {
+
+	try {
+		
+		User::login($_POST['login'], $_POST['password']);
+
+	} catch(Exception $e) {
+
+		User::setError($e->getMessage());
+
+	}
+
+	header("Location: /checkout");
+	
+	exit;
+
+});
+
+// faz o logout da área do usuário
+$app->get("/logout", function() {
+
+	User::logout();
+
+	header("Location: /login");
 });

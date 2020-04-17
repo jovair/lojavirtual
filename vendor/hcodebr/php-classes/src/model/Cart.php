@@ -121,7 +121,6 @@ class Cart extends Model {
             $this->setData($results[0]);
     }
     
-    
     // adiciona produtos no carrinho
     public function addProduct(Product $product)
     {
@@ -152,6 +151,7 @@ class Cart extends Model {
                 ':idcart'=>$this->getidcart(),
                 ':idproduct'=>$product->getidproduct()
             ]);
+            
         } else {
 
             $sql->query("UPDATE tb_cartsproducts 
@@ -225,7 +225,7 @@ class Cart extends Model {
             'nCdEmpresa'=>'',
             'sDsSenha'=>'',
             'nCdServico'=>'40010',
-            'sCepOrigem'=>'37640000',
+            'sCepOrigem'=>'09853120',
             'sCepDestino'=>$nrzipcode,
             'nVlPeso'=>$totals['vlweight'],
             'nCdFormato'=>'1',
@@ -335,6 +335,7 @@ class Cart extends Model {
 
         $this->setvlsubtotal($totals['vlprice']);
         $this->setvltotal($totals['vlprice'] + $this->getvlfreight());
+
     }
 
 }

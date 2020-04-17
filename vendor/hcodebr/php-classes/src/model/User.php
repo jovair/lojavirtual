@@ -54,6 +54,7 @@ class User extends Model {
             !(int)$_SESSION[User::SESSION]["iduser"] > 0
         ) {
 
+            // não está logado
             return false;
 
         } else {
@@ -100,6 +101,8 @@ class User extends Model {
 
             $user = new User();
 
+            $data['desperson'] = utf8_encode($data['desperson']);
+
             // invoca o método setData da classe pai
             $user->setData($data);
 
@@ -119,11 +122,18 @@ class User extends Model {
     public static function verifyLogin($inadmin = true)
     {
 
-        // se a seção não existir dentro das condições abaixo, o usuário e direcionado para a tela de login
+        // se inadmin for true é direcionado para o login de administração, se false, é direcionado para o login de compras
         if (User::checkLogin($inadmin)) {
 
-            // só é direcionado para a tela de login se não se enquadrou em nenhuma condição acima
-            header("Location: /admin/login");
+            if ($inadmin) {
+                
+                header("Location: /admin/login");
+
+            } else {
+
+                header("Location: /login");
+            
+            }
 
             exit;
 
@@ -157,9 +167,9 @@ class User extends Model {
         // os dados que são passados dentros dos parênteses são feitos de modo seguro, impedindo uma ação de injection
         // primeiro os dados são inseridos na tabela, em seguida é feito o select, devolvendo para a aplicação
         $results = $sql->select("CALL sp_users_save(:desperson, :deslogin, :despassword, :desemail, :nrphone, :inadmin)", array(
-            ":desperson"=>$this->getdesperson(),
+            ":desperson"=>utf8_decode($this->getdesperson()),
             ":deslogin"=>$this->getdeslogin(),
-            ":despassword"=>$this->getdespassword(),
+            ":despassword"=>User::getPasswordHash($this->getdespassword()),
             ":desemail"=>$this->getdesemail(),
             ":nrphone"=>$this->getnrphone(),
             ":inadmin"=>$this->getinadmin()
@@ -180,6 +190,8 @@ class User extends Model {
         ));
 
         $this->setData($results[0]);
+
+        $data['desperson'] = utf8_encode($data['desperson']);
         
     }
     
@@ -190,9 +202,9 @@ class User extends Model {
         // idêntico ao método save, exceto que aqui precisa do id do usuário, porque lá ele é gerado automaticamente e aqui está apenas atualizando os dados
         $results = $sql->select("CALL sp_usersupdate_save(:iduser, :desperson, :deslogin, :despassword, :desemail, :nrphone, :inadmin)", array(
             ":iduser"=>$this->getiduser(),
-            ":desperson"=>$this->getdesperson(),
+            ":desperson"=>utf8_decode($this->getdesperson()),
             ":deslogin"=>$this->getdeslogin(),
-            ":despassword"=>$this->getdespassword(),
+            ":despassword"=>User::getPasswordHash($this->getdespassword()),
             ":desemail"=>$this->getdesemail(),
             ":nrphone"=>$this->getnrphone(),
             ":inadmin"=>$this->getinadmin()
