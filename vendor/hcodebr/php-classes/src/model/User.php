@@ -101,7 +101,7 @@ class User extends Model {
 
             $user = new User();
 
-            $data['desperson'] = utf8_encode($data['desperson']);
+            // $data['desperson'] = utf8_encode($data['desperson']);
 
             // invoca o método setData da classe pai
             $user->setData($data);
@@ -167,7 +167,8 @@ class User extends Model {
         // os dados que são passados dentros dos parênteses são feitos de modo seguro, impedindo uma ação de injection
         // primeiro os dados são inseridos na tabela, em seguida é feito o select, devolvendo para a aplicação
         $results = $sql->select("CALL sp_users_save(:desperson, :deslogin, :despassword, :desemail, :nrphone, :inadmin)", array(
-            ":desperson"=>utf8_decode($this->getdesperson()),
+            ":desperson"=>$this->getdesperson(),
+            // ":desperson"=>utf8_decode($this->getdesperson()),
             ":deslogin"=>$this->getdeslogin(),
             ":despassword"=>User::getPasswordHash($this->getdespassword()),
             ":desemail"=>$this->getdesemail(),
@@ -191,7 +192,7 @@ class User extends Model {
 
         $this->setData($results[0]);
 
-        $data['desperson'] = utf8_encode($data['desperson']);
+        // $data['desperson'] = utf8_encode($data['desperson']);
         
     }
     
@@ -202,7 +203,8 @@ class User extends Model {
         // idêntico ao método save, exceto que aqui precisa do id do usuário, porque lá ele é gerado automaticamente e aqui está apenas atualizando os dados
         $results = $sql->select("CALL sp_usersupdate_save(:iduser, :desperson, :deslogin, :despassword, :desemail, :nrphone, :inadmin)", array(
             ":iduser"=>$this->getiduser(),
-            ":desperson"=>utf8_decode($this->getdesperson()),
+            ":desperson"=>$this->getdesperson(),
+            // ":desperson"=>utf8_decode($this->getdesperson()),
             ":deslogin"=>$this->getdeslogin(),
             ":despassword"=>User::getPasswordHash($this->getdespassword()),
             ":desemail"=>$this->getdesemail(),
@@ -216,7 +218,7 @@ class User extends Model {
     }
 
     // exclui um usuário
-    public function delete(Type $var = null)
+    public function delete()
     {
         $sql = new Sql();
 
@@ -314,8 +316,8 @@ class User extends Model {
         // verifica no BD se o uso do código de validação está sendo usado no prazo máximo de 1 hora
         $sql = new Sql();
 
-		$results = $sql->select("
-			SELECT *
+        $results = $sql->select
+            ("SELECT *
 			FROM tb_userspasswordsrecoveries a
 			INNER JOIN tb_users b USING(iduser)
 			INNER JOIN tb_persons c USING(idperson)
@@ -325,8 +327,8 @@ class User extends Model {
 				a.dtrecovery IS NULL
 				AND
 				DATE_ADD(a.dtregister, INTERVAL 1 HOUR) >= NOW();
-		", array(
-			":idrecovery"=>$idrecovery
+            ", array(
+                ":idrecovery"=>$idrecovery
 		));
 
 		if (count($results) === 0)

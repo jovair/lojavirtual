@@ -277,3 +277,76 @@ $app->post("/register", function(){
 
 	header('Location: /checkout');
 });
+
+// carrega o template para a entrada do e-mail a ser recuperado
+$app->get("/forgot", function() {
+
+	$page = new Page();
+
+	$page->setTpl("forgot");
+	
+});
+
+// envia o e-mail digitado no template de recuperação da senha
+$app->post("/forgot", function(){
+
+	// passa o e-mail para o método getForgot
+	$user = User::getForgot($_POST["email"], false);
+
+	// informa o usuário que o e-mail foi enviado com sucesso
+	header("Location: /forgot/sent");
+	
+	exit;
+
+});
+
+// carrega o template de mensagem enviada
+$app->get("/forgot/sent", function(){
+
+	$page = new Page();
+
+	$page->setTpl("forgot-sent");
+
+});
+
+// valida o código do usuário
+$app->get("/forgot/reset", function(){
+
+	// primeira verificação de segurança do código
+	$user = User::validForgotDecrypt($_GET["code"]);
+
+	$page = new Page();
+
+	$page->setTpl("forgot-reset", array(
+		"name"=>$user["desperson"],
+		"code"=>$_GET["code"]
+	));
+	
+});
+
+// envia a nova senha do usuário para alteração
+$app->post("/forgot/reset", function(){
+
+	// segunda verificação para ter certeza que não houve alguma brecha de segurança
+	$forgot = User::validForgotDecrypt($_POST["code"]);
+
+	// passa a senha para o método
+	User::setForgotUsed($forgot["idrecovery"]);
+
+	// instancia o objeto
+	$user = new User();
+
+	// recebe a senha bruta do banco
+	$user->get((int)$forgot["iduser"]);
+
+	// envia o hash da senha com a API password_hash
+	$password = User::getPasswordHash($_POST["password"]);
+
+	// passa a senha para o método
+	$user->setPassword($password);
+
+	$page = new Page();
+
+	$page->setTpl("forgot-reset-success");
+
+});

@@ -10,9 +10,9 @@ use PHPMailer\PHPMailer\PHPMailer;
 
 class Mailer {
 
-    const USERNAME = "seuEmailVerdadeiro";
-    const PASSWORD = "senhaDoEmail";
-    const NAME_FROM = "Assunto do e-mail";
+    const USERNAME = "administrativo@dottravel.com.br";
+    const PASSWORD = "D0tv1s@1";
+    const NAME_FROM = "Recuperação de senha";
 
     // o atribudo $mail foi criado para ser chamado só quando for necessário
     private $mail;
@@ -53,7 +53,7 @@ class Mailer {
 
         //Set the hostname of the mail server
         // $this->mail->Host = 'smtp.gmail.com';
-        $this->mail->Host = 'seuSMTP';
+        $this->mail->Host = 'mail.dottravel.com.br';
         // use
         // $this->mail->Host = gethostbyname('smtp.gmail.com');
         // if your network does not support SMTP over IPv6
