@@ -164,11 +164,21 @@ $app->get("/checkout", function(){
 
 	User::verifyLogin(false);
 
+	$address = new Address();
 	$cart = Cart::getFromSession();
 
-	$address = new Address();
+	// if (!isset($_GET['zipcode'])) {
 
-	$page = new Page();
+	// 	$_GET('zipcode') = $cart->getdeszipcode();
+
+	// }
+
+	// if (isset($_GET['zipcode'])) {
+
+	// 	$address-loadFromCEP()
+	// }
+
+	// $page = new Page();
 
 	$page->setTpl("checkout", [
 		'cart'=>$cart->getValues(),
@@ -183,7 +193,7 @@ $app->get("/login", function(){
 
 	$page->setTpl("login", [
 		'error'=>User::getError(),
-		'errorRegister'=>User::getErrorRegister(),
+		'errorRegister'=>User::getError(),
 		'registerValues'=>(isset($_SESSION['registerValues'])) ? $_SESSION['registerValues'] : ['name'=>'', 'email'=>'', 'phone'=>'']
 	]);
 });
@@ -213,6 +223,8 @@ $app->get("/logout", function() {
 	User::logout();
 
 	header("Location: /login");
+	
+	exit;
 });
 
 // envia os dados do cadastro para o BD.
@@ -348,5 +360,76 @@ $app->post("/forgot/reset", function(){
 	$page = new Page();
 
 	$page->setTpl("forgot-reset-success");
+
+});
+
+$app->get("/profile", function(){
+
+	User::verifyLogin(false);
+
+	$user = User::getFromSession();
+
+	$page = new Page();
+
+	$page->setTpl("profile", [
+		'user'=>$user->getValues(),
+		'profileMsg'=>User::getSuccess(),
+		'profileError'=>User::getError()
+	]);
+
+});
+
+$app->post("/profile", function(){
+
+	User::verifyLogin(false);
+
+	if (!isset($_POST['desperson']) || $_POST['desperson'] === '') {
+		
+		User::setError("Preencha o seu nome.");
+
+		header("Lcation: /profile");
+
+		exit;
+	}
+
+	if (!isset($_POST['desemail']) || $_POST['desemail'] === '') {
+		
+		User::setError("Preencha o seu e-mail.");
+		
+		header("Lcation: /profile");
+
+		exit;
+	}
+
+	$error = User::getFromSession();
+
+	if ($_POST['desemail'] !== $user->getdesemail()) {
+
+		if (User::checkLoginExist($_POST['desemail']) === true) {
+
+			User::setError("Este endereço de e-mail já está cadastrado.");
+			
+			header("Lcation: /profile");
+
+			exit;
+
+		}
+
+	}
+
+	$_POST['inadmin'] = $user->getinadmin();
+
+	$_POST['despassword'] = $user->getdespassword();
+
+	$_POST['deslogin'] = $_POST['desemail'];
+
+	$user->setData($_POST);
+
+	$user->update();
+
+	User::setSuccesses("Dados alterados com sucesso");
+
+	header("Location: /profile");
+	exit;
 
 });

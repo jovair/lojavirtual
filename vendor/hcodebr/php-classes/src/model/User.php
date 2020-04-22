@@ -37,7 +37,8 @@ class User extends Model {
         }
 
         return $user;
-
+        
+        
     }
 
     // verifica se o usuário está logado, se é ou não administrador, permitindo acesso apenas onde ele tem autorização
@@ -101,7 +102,7 @@ class User extends Model {
 
             $user = new User();
 
-            // $data['desperson'] = utf8_encode($data['desperson']);
+            $data['desperson'] = utf8_encode($data['desperson']);
 
             // invoca o método setData da classe pai
             $user->setData($data);
@@ -167,8 +168,7 @@ class User extends Model {
         // os dados que são passados dentros dos parênteses são feitos de modo seguro, impedindo uma ação de injection
         // primeiro os dados são inseridos na tabela, em seguida é feito o select, devolvendo para a aplicação
         $results = $sql->select("CALL sp_users_save(:desperson, :deslogin, :despassword, :desemail, :nrphone, :inadmin)", array(
-            ":desperson"=>$this->getdesperson(),
-            // ":desperson"=>utf8_decode($this->getdesperson()),
+            ":desperson"=>utf8_decode($this->getdesperson()),
             ":deslogin"=>$this->getdeslogin(),
             ":despassword"=>User::getPasswordHash($this->getdespassword()),
             ":desemail"=>$this->getdesemail(),
@@ -192,7 +192,7 @@ class User extends Model {
 
         $this->setData($results[0]);
 
-        // $data['desperson'] = utf8_encode($data['desperson']);
+        $data['desperson'] = utf8_encode($data['desperson']);
         
     }
     
@@ -203,8 +203,7 @@ class User extends Model {
         // idêntico ao método save, exceto que aqui precisa do id do usuário, porque lá ele é gerado automaticamente e aqui está apenas atualizando os dados
         $results = $sql->select("CALL sp_usersupdate_save(:iduser, :desperson, :deslogin, :despassword, :desemail, :nrphone, :inadmin)", array(
             ":iduser"=>$this->getiduser(),
-            ":desperson"=>$this->getdesperson(),
-            // ":desperson"=>utf8_decode($this->getdesperson()),
+            ":desperson"=>utf8_decode($this->getdesperson()),
             ":deslogin"=>$this->getdeslogin(),
             ":despassword"=>User::getPasswordHash($this->getdespassword()),
             ":desemail"=>$this->getdesemail(),

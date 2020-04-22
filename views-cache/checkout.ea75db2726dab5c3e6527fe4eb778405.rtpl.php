@@ -22,9 +22,15 @@
 							<div class="row">
 								<div class="col-md-12">
 
+									<?php if( $error != '' ){ ?>
+
 									<div class="alert alert-danger">
-										Error!
+									<?php echo htmlspecialchars( $error, ENT_COMPAT, 'UTF-8', FALSE ); ?>
+
 									</div>
+									
+									<?php } ?>
+
 
 									<div class="woocommerce-billing-fields">
 										<h3>Endereço de entrega</h3>
