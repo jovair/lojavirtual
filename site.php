@@ -165,20 +165,21 @@ $app->get("/checkout", function(){
 	User::verifyLogin(false);
 
 	$address = new Address();
+	
 	$cart = Cart::getFromSession();
 
-	// if (!isset($_GET['zipcode'])) {
+	if (!isset($_GET['zipcode'])) {
 
-	// 	$_GET('zipcode') = $cart->getdeszipcode();
+		$_GET['zipcode'] = $cart->getdeszipcode();
 
-	// }
+	}
 
-	// if (isset($_GET['zipcode'])) {
+	if (isset($_GET['zipcode'])) {
 
-	// 	$address-loadFromCEP()
-	// }
+		$address->loadFromCEP();
+	}
 
-	// $page = new Page();
+	$page = new Page();
 
 	$page->setTpl("checkout", [
 		'cart'=>$cart->getValues(),
@@ -193,7 +194,7 @@ $app->get("/login", function(){
 
 	$page->setTpl("login", [
 		'error'=>User::getError(),
-		'errorRegister'=>User::getError(),
+		'errorRegister'=>User::getErrorRegister(),
 		'registerValues'=>(isset($_SESSION['registerValues'])) ? $_SESSION['registerValues'] : ['name'=>'', 'email'=>'', 'phone'=>'']
 	]);
 });
@@ -287,7 +288,9 @@ $app->post("/register", function(){
 
 	User::login($_POST['email'], $_POST['password']);
 
-	header('Location: /checkout');
+	header("Location: /checkout");
+
+	exit;
 });
 
 // carrega o template para a entrada do e-mail a ser recuperado

@@ -124,7 +124,7 @@ class User extends Model {
     {
 
         // se inadmin for true é direcionado para o login de administração, se false, é direcionado para o login de compras
-        if (User::checkLogin($inadmin)) {
+        if (!User::checkLogin($inadmin)) {
 
             if ($inadmin) {
                 
