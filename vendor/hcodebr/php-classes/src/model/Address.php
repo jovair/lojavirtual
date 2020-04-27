@@ -59,20 +59,20 @@ class Address extends Model {
         $results = $sql->select("CALL sp_addresses_save(:idaddress, :idperson, :desaddress, :descomplement, :descity, :desstate, :descountry, :deszipcode, :desdistrict)", [
             ':idaddress'=>$this->getidaddress(),
             ':idperson'=>$this->getidperson(),
-            ':desaddress'=>$this->getdesaddress(),
-            ':descomplement'=>$this->getdescomplement(),
-            ':descity'=>$this->getdescity(),
-            ':desstate'=>$this->getdesstate(),
-            ':descountry'=>$this->getdescountry(),
+            ':desaddress'=>utf8_decode($this->getdesaddress()),
+            ':descomplement'=>utf8_decode($this->getdescomplement()),
+            ':descity'=>utf8_decode($this->getdescity()),
+            ':desstate'=>utf8_decode($this->getdesstate()),
+            ':descountry'=>utf8_decode($this->getdescountry()),
             ':deszipcode'=>$this->getdeszipcode(),
-            ':desdistrict'=>$this->getdesdistrict()
+            ':desdistrict'=>utf8_decode($this->getdesdistrict())
         ]);
 
         if (count($results) > 0) {
 
             $this->setData($results[0]);
 
-        } 
+        }
         
     }
 
