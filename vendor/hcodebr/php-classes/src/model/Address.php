@@ -12,6 +12,8 @@ use \Hcode\Model;
 
 class Address extends Model {
 
+    const SESSION_ERROR = 'AddressError';
+
     public static function getCEP($nrcep)
     {
 
@@ -45,8 +47,60 @@ class Address extends Model {
             $this->setdescity($data['localidade']);
             $this->setdesstate($data['uf']);
             $this->setdescountry('Brasil');
-            $this->setnrzipcode($nrcep);
+            $this->setdeszipcode($nrcep);
         }
+    }
+
+    public function Save()
+    {
+
+        $sql = new Sql();
+
+        $results = $sql->select("CALL sp_addresses_save(:idaddress, :idperson, :desaddress, :descomplement, :descity, :desstate, :descountry, :deszipcode, :desdistrict)", [
+            ':idaddress'=>$this->getidaddress(),
+            ':idperson'=>$this->getidperson(),
+            ':desaddress'=>$this->getdesaddress(),
+            ':descomplement'=>$this->getdescomplement(),
+            ':descity'=>$this->getdescity(),
+            ':desstate'=>$this->getdesstate(),
+            ':descountry'=>$this->getdescountry(),
+            ':deszipcode'=>$this->getdeszipcode(),
+            ':desdistrict'=>$this->getdesdistrict()
+        ]);
+
+        if (count($results) > 0) {
+
+            $this->setData($results[0]);
+
+        } 
+        
+    }
+
+    public static function setMsgError($msg)
+    {
+
+        $_SESSION[Address::SESSION_ERROR] = $msg;
+
+    }
+
+    // pega a mensagem de erro
+    public static function getMsgError()
+    {
+
+        $msg = (isset($_SESSION[Address::SESSION_ERROR])) ? $_SESSION[Address::SESSION_ERROR] : "";
+
+        Address::clearMsgError();
+
+        return $msg;
+
+    }
+
+    // limpa a mensagem de erro
+    public static function clearMsgError()
+    {
+
+        $_SESSION[Address::SESSION_ERROR] = NULL;
+
     }
 
 }
