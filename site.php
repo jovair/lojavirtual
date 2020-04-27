@@ -163,20 +163,21 @@ $app->post("/cart/freight", function() {
 $app->get("/checkout", function(){
 
 	User::verifyLogin(false);
-
+	
 	$address = new Address();
 	
 	$cart = Cart::getFromSession();
 
-	if (!isset($_GET['zipcode'])) {
-
-		$_GET['zipcode'] = $cart->getdeszipcode();
-
-	}
-
 	if (isset($_GET['zipcode'])) {
 
-		$address->loadFromCEP();
+		$address->loadFromCEP($_GET['zipcode']);
+		
+		$cart->setdeszipcode($_GET['zipcode']);
+
+		$cart->save();
+
+		$cart->getCalculateTotal();
+
 	}
 
 	$page = new Page();
