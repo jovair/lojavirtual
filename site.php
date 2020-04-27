@@ -184,8 +184,13 @@ $app->get("/checkout", function(){
 
 	$page->setTpl("checkout", [
 		'cart'=>$cart->getValues(),
-		'address'=>$address->getValues()
+		'address'=>$address->getValues(),
+		'products'=>$cart->getProducts()
 	]);
+});
+
+$app->post("checkout", function(){
+
 });
 
 // verifica se o login é válido
