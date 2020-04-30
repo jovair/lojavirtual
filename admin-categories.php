@@ -48,7 +48,6 @@ $app->get("/admin/categories", function(){
 		"pages"=>$pages
 	]);	
 
-
 });
 
 // carrega o template para cadastrar a categoria
