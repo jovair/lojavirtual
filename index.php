@@ -9,7 +9,7 @@ session_start();
 require_once("vendor/autoload.php");
 
 // todas as classes usadas pela aplicação está aqui
-use \Slim\Slim;
+use Slim\Slim;
 
 // esta rota  carrega o slim que é responsável pela criação de rotas dentro do sistema
 $app = new \Slim\Slim();
