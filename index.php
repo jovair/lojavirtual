@@ -8,7 +8,7 @@ session_start();
 // requerimento do autoload, que vai controlar todas as aplicações proprietárias e de terceiros do sistema
 require_once("vendor/autoload.php");
 
-// todas as classes usadas pela aplicação está aqui
+// todas as classes usadas pela aplicação estão aqui
 use Slim\Slim;
 
 // esta rota  carrega o slim que é responsável pela criação de rotas dentro do sistema
